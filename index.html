@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h2 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            margin: 0;
+            font-size: 24px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #editor {
+            width: 80%;
+            height: 300px;
+            border: 2px solid #4CAF50;
+            padding: 10px;
+            margin: 20px auto;
+            outline: none;
+            overflow-y: auto;
+            font-size: 16px;
+            background-color: white;
+            transition: box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+
+        #editor:focus {
+            box-shadow: 0px 0px 10px rgba(76, 175, 80, 0.7);
+            background-color: #e8f5e9;
+        }
+
+        #user-list {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+
+        .show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <h2>Real-time Collaborative Editor</h2>
+    <div id="user-list" class="show"><strong>Connected Users:</strong> <span id="users"></span></div>
+    <div contenteditable="true" id="editor"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const editor = document.getElementById("editor");
+        const usersDisplay = document.getElementById("users");
+        const userList = document.getElementById("user-list");
+
+        let username = "User_" + Math.floor(Math.random() * 1000);
+        socket.emit("new-user", username);
+
+        editor.addEventListener("input", () => {
+            socket.emit("text-update", editor.innerHTML);
+        });
+
+        socket.on("text-update", (data) => {
+            if (editor.innerHTML !== data) {
+                editor.innerHTML = data;
+            }
+        });
+
+        socket.on("update-users", (userListData) => {
+            usersDisplay.innerHTML = userListData.join(", ");
+            userList.classList.add("show");
+        });
+    </script>
+</body>
+</html>
